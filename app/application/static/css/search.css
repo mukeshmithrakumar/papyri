@@ -1,0 +1,244 @@
+.headerSearch {
+    background-image: linear-gradient(to right, #30223A, #F13800);
+}
+
+.imgHeader {
+    width: 10%;
+    height: auto;
+}
+
+
+
+
+/* ----------------------------------------- Basic Search Box  ----------------------------------------- */
+
+.searchBox {
+    padding-bottom: 30px;}
+
+#searchContainer {
+    -webkit-box-align: center;
+    align-items: center;
+    background: white;
+    border-radius: 10px;
+    display: -webkit-box;
+    display: flex;
+    -webkit-box-pack: justify;
+    justify-content: space-between;
+    margin: 0.5em 0;
+    padding: 0.5em 0.5em 0.5em 1em;
+    -webkit-transition: all 0.5s;
+    transition: all 0.5s;
+    width: 700px;
+    height: 50px;
+    justify-content: center;
+    margin: 25px auto;
+}
+
+
+#searchContainer button,
+#searchContainer input {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background: transparent;
+    border: 0;
+    color: inherit;
+    font: inherit;
+    outline: 0;
+}
+
+#searchContainer button {
+    cursor: pointer;
+    padding: 0 0.25em;
+}
+
+#searchContainer input {
+    -webkit-box-flex: 1;
+    flex: 1;
+    color: black;
+}
+
+#searchContainer input::placeholder {
+    color: black;
+}
+
+/* #searchContainer.loading button {
+    display: none;
+} */
+
+
+/* ----------------------------------------- Advanced Search Box  ----------------------------------------- */
+
+.form-control {
+    border-radius: 15px;
+}
+
+.searchBox .filtersContainer {
+    position: relative;
+    background: #dddddd;
+    color: #333;
+    padding: 0.75rem;
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-gap: 15px;
+    -webkit-box-align: center;
+    align-items: center;
+    border-radius: 15px;
+}
+
+.searchBox .filtersContainer::before {
+    content: '';
+    position: absolute;
+    border-width: 15px;
+    border-style: solid;
+    border-color: transparent;
+    top: 0;
+    right: 90px;
+    border-bottom-color: #dddddd;
+    -webkit-transform: translateY(-100%);
+    transform: translateY(-100%);
+}
+
+
+/* ----------------------------------------- Result Container  ----------------------------------------- */
+
+
+.resultContainer {
+    align-items: center;
+    min-height: 100vh;
+    /* padding-bottom: 100px; */
+    padding: 100px;
+}
+
+#container {
+    left: 20%;
+}
+
+/* .loading {
+	opacity: 0;
+	display: flex;
+	position: fixed;
+	bottom: 50px;
+	transition: opacity .3s ease-in;
+}
+
+.loading.show {
+	opacity: 1;
+} */
+/*
+.ball {
+	background-color: black;
+	border-radius: 50%;
+	margin: 5px;
+	height: 10px;
+	width: 10px;
+	animation: jump .5s ease-in infinite;
+}
+
+.ball:nth-of-type(2) {
+	animation-delay: 0.1s;
+}
+
+.ball:nth-of-type(3) {
+	animation-delay: 0.2s;
+} */
+
+.post {
+	background-image: linear-gradient(to right, #30223A, #F13800);
+	box-shadow: 0 2px 4px black;
+	border-radius: 10px;
+	display: flex;
+	padding: 20px;
+    margin: auto;
+	width: 80vw;
+    max-width: 800px;
+    color: white;
+    margin-bottom: 20px;
+}
+
+.post-info {
+    margin-left: 20px;
+    float: left;
+    width: 80%;
+}
+
+.post-title {
+    margin: 0;
+    font-family: 'Redressed', cursive;
+}
+
+.post-author {
+    margin-bottom: 0;
+}
+
+.post-abstract {
+	margin: 15px 0 0;
+	text-align: left;
+    line-height: 1.2;
+    /* font-size: 1rem; */
+}
+
+.try-it {
+    color: white;
+    background: black;
+    border: 1px solid #E8E8E8;
+    box-sizing: border-box;
+    border-radius: 8px;
+    text-align: center;
+    padding-top: 10%;
+    float: left;
+    width: 15%;
+}
+
+.summarize-button {
+    margin-top: 15px;
+    border-radius: 10px;
+    padding: 5px;
+    color: black;
+    background-color: #990000;
+}
+
+.summarize-button:hover {
+    border-color: white;
+    background-color: black;
+    color: white;
+}
+
+
+/* ----------------------------------------- Mobile Config  ----------------------------------------- */
+
+
+@media screen and (max-width: 620px) {
+    #searchContainer {
+        width: auto;
+        height: auto;
+    }
+
+    .searchBox .filtersContainer {
+        grid-template-columns: repeat(1, 1fr);
+    }
+
+    .imgHeader {
+        width: 40%;
+        height: 10%;
+    }
+
+    .research-paper-container.visible {
+		transform: translateX(0px);
+    }
+
+    .post {
+        margin: 0 auto;
+        width: auto;
+        height: auto;
+    }
+
+    .post-info {
+		margin-left: 0;
+    }
+
+    .post-title {
+		margin-top: 20px;
+	}
+}
