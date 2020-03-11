@@ -8,11 +8,13 @@ def index():
     return render_template('index.html')
 
 
+@app.route('/search')
 @app.route('/search.html')
 def search():
     return render_template('search.html')
 
 
+@app.route('/summary')
 @app.route('/summary.html')
 def summary():
     return render_template('summary.html')

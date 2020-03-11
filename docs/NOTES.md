@@ -469,7 +469,70 @@ __Best practices for Scaling ML__
 - Use orchestration tools
 - Monitor all levels of the stack.
 
-<h3>Flask</h3>
+<h3>Flask and AWS</h3>
+
+- I can use either Flask SQLAlchemy or FlaskRedis to read and write to and from a database.
+
+- I can use [AWS RDS](https://aws.amazon.com/rds/) and select MySQL engine and select dev/test for now and then move to [Amazon Aurora](https://aws.amazon.com/rds/aurora/machine-learning/) for production
+
+- Elastic Beanstalk Environment for deploying the app using a CLI
+
+- [Amazon Web Services’ Lambda](https://aws.amazon.com/lambda/) containerizes your code and auto-scales those containers for you, with zero administration required from developers. For clarity, “serverless” means the developer does not have to think about servers, even though they exist. AWS handles them.
+
+- [Amazon DynamoDB](https://aws.amazon.com/dynamodb/) looks like a good option to store the text data but look into it further.
+
+- [AWS Elastic Beanstalk](https://aws.amazon.com/elasticbeanstalk/) is an easy-to-use service for deploying and scaling web applications
+
+
+
+
+
+
+
+
+
+
+
+<h3>AWS</h3>
+
+
+- A solution like Beanstalk will take care of the scaling of your web servers by putting a reverse proxy in front of your application servers. It will easily manage requests in the order of early thousands concurrently and after that your load balancers will kick in rotating the user’s requests to other application servers according to the auto scaling policy you have mentioned in the configuration settings while setting your application
+
+_AWS Lambda vs Elastic Beanstalk_
+
+- Lambda is simpler and less expensive, while Elastic Beanstalk lets you run full applications and gives you control over their environment.
+
+- With Elastic Beanstalk, you have access to a Platform as a Service (PaaS), and you can manage some aspects of the infrastructure. Developers can create, test, and deploy applications on the platform. You don’t have to deal with provisioning, load balancing, or scaling. Elastic Beanstalk supports many server environments, including Apache HTTP Server, Nginx, Microsoft IIS, and Apache Tomcat. It has strong support for Docker containers, allowing easy deployment of applications.
+
+- Developers uploading to Lambda don’t have to deal with their code’s environment. It’s a “serverless” service which lets outside code or events invoke functions. Lambda doesn’t store data, but it allows access to other services which do. The thing which really makes Lambda attractive is that you pay nothing except when you actually run code on it. You can pull compute-heavy pieces out of your applications and deploy them on Lambda for a very low cost. You can’t run full-blown applications on Lambda, but AWS Step Functions implement a state machine, letting you invoke a series of Lambda functions and handle error conditions. Lambda functions can serve as a backend to an application running elsewhere.
+
+- Elastic Beanstalk pricing is more complicated. There’s no charge for using Elastic Beanstalk as such, but you pay for the AWS resources that store and run your code. The Free Usage Tier, which is available for 12 months, may be enough to run many applications that don’t get heavy traffic. Applications will usually run on EC2, which is where you pay for instances, load balancing, and data transfers. You can pay for on-demand, reserved, or spot instances, or you can request a dedicated server. On-demand works best if your requirements vary over time, and spot instances can save money if you’re flexible about when your applications run.
+
+- Lambda lets you define functions which are available at any time, but it doesn’t give you any persistent storage or state information. This isn’t as limiting as it may sound, though. You can add S3 storage or a database as a backend. You can offload processing tasks from a front-end application onto Lambda. AWS Step Functions allow the implementation of simple workflows. Amazon API gateway provides a backplane for building an API using Lambda functions.
+
+- Lambda does have some hard limits. The request body payload can’t be more than 6 MB. The duration of a request can’t exceed 300 seconds. This makes it unsuitable for passing large blocks of data or for functions that wait a long time, but there are often workarounds. There are also deployment limits; a deployment package can’t exceed 50 MB. Lambda code can include existing libraries, but very large libraries could be a problem.
+
+- If customization of the application’s environment is necessary, Elastic Beanstalk offers a lot of value. Anything that’s concerned with the details of security, resource allocation, auto-scaling, and log customization needs more flexibility than Lambda offers.
+
+- The whole application doesn’t need to be on the application platform. A hybrid approach, with functions on Lambda doing the bulk of the computing, will let you run a lightweight application that doesn’t require a huge amount of server power. When making the choice of AWS Lambda vs. Elastic Beanstalk, it isn’t necessarily an either-or choice.
+
+- AWS Lambda will let you slice your apps as granularly as you like. Can’t do that with Elastic Beanstalk. A Lambda function can be a single API endpoint, a collection of endpoints, or an entire app backend.
+
+- AWS Lambda lets you easily set up triggers via Amazon’s API Gateway, DynamoDB, and S3 services.
+
+I feel that any Application deployed in production should be made such that it stands out on the following 3 features:
+
+- Scalability
+- High Availability(Resiliency)
+- Maintainability
+
+- For businesses new to AWS or new to the containerization concept, just getting started with Docker, or developing new applications, Elastic Beanstalk may be the best approach to support Docker containers. Elastic Beanstalk offers a simple interface, allows Docker images to be pulled from public or private registries, and coordinates the deployment of multiple Docker containers to Amazon ECS clusters. Elastic Beanstalk gives you less control over application scaling and capacity but makes deploying Docker containers on AWS ever so straightforward.
+
+- In comparison to Elastic Beanstalk, Elastic Container Service (relies on [AWS Fargate](https://aws.amazon.com/fargate/)) provides greater control over application architectures and orchestration of Docker containers. You specify the size and number of cluster nodes and determine if auto-scaling should be used. Elastic Container Service uses tasks to launch Docker containers. A task includes the container definition, providing the ability to group containers in sets that launch together then terminate simultaneously. ECS provides significantly greater flexibility and customization in scheduling and CPU and memory utilization. In addition, ECS does not require special integration efforts to work with many other AWS services.
+
+
+
+
 
 
 

@@ -146,28 +146,37 @@ This is basically my setup for the inference engine, will show my train engine f
 
 Since everything upto my search works using JavaScript, all I needed to setup were the routes in the Flask side so next, I will look into how I can deploy a Flask app in AWS.
 
+- [Deploying a Flask application to AWS](https://medium.com/@rodkey/deploying-a-flask-application-on-aws-a72daba6bb80)
 
-(AWS Flask Links)
-
-
-
-After going through all the Flask stuff, this is what I am going to use Flask for:
--
--
--
--
-
-
-
-
-
-
-
-
-
-Based on my Flask requirements, below is a sequence diagram:
+Below is the Flask sequence diagram:
 
 (Flask Sequence diagram, take inspiration from: https://www.freecodecamp.org/news/cjn-understanding-mean-stack-through-diagrams/)
+
+Next, I wanted to deploy this prototype using [AWS Elastic Beanstalk](https://aws.amazon.com/elasticbeanstalk/). I have discussed to some extent in my notes why I picked this over AWS Lambda or AWS Fargate for initial deployment. Btw I only used their documentation to deploy the app:
+
+- [AWS Elastic Beanstalk Documentation](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/Welcome.html)
+
+And as all coders know, I ran into issues, very minor head banging issues we usually run into.
+1. AWS required me to create an application object since I was using Flask, not an app object in my application.py, so basically
+
+```python
+application = app = Flask(__name__)
+```
+
+2. My css and js didn't load. So I found out that EB doesn't read static file location by default so I had to specify that
+in a .ebextensions folder with the following python config:
+
+```
+option_settings:
+    aws:elasticbeanstalk:container:python:staticfiles:
+        /static: papyriapp/static/
+```
+
+
+
+
+
+So far my app is able to search arXiv papers, next, it should download the file the user selects, (Should I store it in S3? What would be the cost).
 
 
 
@@ -179,9 +188,13 @@ Then download the selected file and store it in S3 bucket. After it is stored, I
 
 
 
+Next, I need to extract the text in the pdf.
 
 
-Now that we are closing in on the Machine Learning Stuff, I wanna see what kind of Machine Learning Services does Amazon provide so I can leverage that. I am going to look at it now cause if it already has text summarization and a chatbot, I don't have to worry about training the models just yet.
+
+
+
+Now that we are closing in on the Machine Learning Stuff, I wanna see what kind of Machine Learning Services Amazon provide so I can leverage that. I am going to look at it now cause if it already has for example, text summarization and a chatbot, I don't have to worry about training the models just yet.
 
 - [Amazon Web Services Machine Learning Essential Training](https://www.linkedin.com/learning/amazon-web-services-machine-learning-essential-training/welcome)
 
@@ -191,11 +204,23 @@ Now that we are closing in on the Machine Learning Stuff, I wanna see what kind 
 
 
 
-Next the pdf to text extraction using ...................... . I initially wrote the text extraction in python using pdfminer but later when I looked into AWS services, I came across their text extractor, you can read more about it in [Section 2: Inference Engine](). For my purposes of just extracting the text, the AWS textractor and my textractor gave the same results but Amazons' textractor comes with other functionality like extracting images and tables, so if I choose to use those to help my summarizer later, it would be easy so I am going with AWS textractor for now with the tradeoff of cost. Below is my modified inference architecture with the AWS textractor component. Note that I am just showing only the extraction component.
+
+
+
+I initially wrote the text extraction in python using pdfminer but later when I looked into AWS services, I came across their text extractor, you can read more about it in [Section 2: Inference Engine](). For my purposes of just extracting the text, the AWS textractor and my textractor gave the same results but Amazons' textractor comes with other functionality like extracting images and tables, so if I choose to use those to help my summarizer later, it would be easy so I am going with AWS textractor for now with the tradeoff of cost. Below is my modified inference architecture with the AWS textractor component. Note that I am just showing only the extraction component.
 
 (AWS textractor architecture)
 
 Next I send the extracted text through a text cleaner to do some basic cleaning like removing the title, equations and the reference section. (I need to check this with abstract and reference keywords in the paper and see how it works)
+
+
+
+
+
+
+
+
+
 
 Below is a database where I am going to store some meta data that could be later used for making my model better:
 1. Paper title
@@ -207,6 +232,9 @@ Below is a database where I am going to store some meta data that could be later
 7. Chatbot rating
 8. Chatbot comments
 8. Summary rating
+
+I want to either store all of it in a bucket and update a csv with the links or store the csv in a sql database and store the original content in a bucket. I need to link into this.
+
 
 
 
@@ -427,6 +455,13 @@ I am going to use Kubernetes to scale.
 <h2>Inference Engine</h2>
 
 
+<h3>Flask App</h3>
+
+I was familiar with building the Python components but I wanted to start with front end first because that'll solidify the user requirements and how the app will work. This isn't always possible when working with clients and if you are just building a small component or if you have separate developers then you need to follow Agile principles. Since this was just me, I don't have to worry a lot about the constraints that comes with top down approach and even though it was just me, I still followed Agile principles to make sure I was on time with things and following requirements.
+
+
+
+
 <h3>Text Extractor</h3>
 
 - Make sure you have a logger and save the log files, it'll be helpful in future (Write about why logging is helpful).
@@ -451,6 +486,10 @@ Tried PyPDF2 and it was crap. And don't install pdfminer, nor pdfminer.six, the 
 
 Best thing for text extraction from PDFs is [TET](https://www.pdflib.com/), the text extraction toolkit. TET is part of the PDFlib.com family of products. But PDFlib TET can be evaluated without a license, but will only process PDF documents with up to 10 pages and 1 MB size unless a valid license key is applied. For some other solutions, which are pretty good, take a look at [this](https://stackoverflow.com/questions/3650957/how-to-extract-text-from-a-pdf)
 
+_Textractor_
+
+
+
 
 __Notes__
 
@@ -461,7 +500,6 @@ I also found later when I started going through AWS services that they have a te
 
 
 
-<h3>Flask App</h3>
 
 
 
