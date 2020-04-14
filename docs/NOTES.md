@@ -29,11 +29,11 @@ Another advantage is that it was also added to open-CV library (from version 4) 
 __CRNN__ (Convolutional-recurrent neural network), suggest a hybrid (or tribrid?) end to end architecture, that is intended to capture words, in a three step approach.
 The idea goes as follows: the first level is a standard fully convolutional network. The last layer of the net is defined as feature layer, and divided into “feature columns”. See in the image below how every such feature column is intended to represent a certain section in the text.
 
-<img src="./images/crnn_1.jpg">
+<img src="../images/crnn_1.jpg">
 
 Afterwards, the feature columns are fed into a deep-bidirectional LSTM which outputs a sequence, and is intended for finding relations between the characters.
 
-<img src="./images/crnn_2.jpg">
+<img src="../images/crnn_2.jpg">
 
 Finally, the third part is a transcription layer. Its goal is to take the messy character sequence, in which some characters are redundant and others are blank, and use probabilistic method to unify and make sense out of it.
 
@@ -85,7 +85,7 @@ Text summarization can broadly be divided into two categories — _Extractive Su
 
 TextRank is an extractive and unsupervised text summarization technique. Let’s take a look at the flow of the TextRank algorithm that we will be following:
 
-<img src="./images/text_rank.jpg">
+<img src="../images/text_rank.jpg">
 
 
 <h2>Comprehensive Guide to Text Summarization using Deep Learning in Python</h2>
@@ -122,6 +122,194 @@ Summaries are created by ranking sentences in a news article according to how re
 pytextrank is the Python implementation of TextRank.
 
 
+<h2>Demystifying BERT: A Comprehensive Guide to the Groundbreaking NLP Framework</h2>
+
+
+[Link](https://www.analyticsvidhya.com/blog/2019/09/demystifying-bert-groundbreaking-nlp-framework/)
+
+BERT is a deep learning model that has given state-of-the-art results on a wide variety of natural language processing tasks. It stands for _Bidirectional Encoder Representations for Transformers_. It has been pre-trained on Wikipedia and BooksCorpus and requires (only) task-specific fine-tuning.
+
+BERT has inspired many recent NLP architectures, training approaches and language models, such as Google’s TransformerXL, OpenAI’s GPT-2, XLNet, ERNIE2.0, RoBERTa, etc.
+
+ELMo was the NLP community’s response to the problem of Polysemy – same words having different meanings based on their context. From training shallow feed-forward networks (Word2vec), we graduated to training word embeddings using layers of complex Bi-directional LSTM architectures. This meant that the same word can have multiple ELMO embeddings based on the context it is in.
+
+ULMFiT took this a step further. This framework could train language models that could be fine-tuned to provide excellent results even with fewer data (less than 100 examples) on a variety of document classification tasks. It is safe to say that ULMFiT cracked the code to transfer learning in NLP.
+
+OpenAI’s GPT extended the methods of pre-training and fine-tuning that were introduced by ULMFiT and ELMo. GPT essentially replaced the LSTM-based architecture for Language Modeling with a Transformer-based architecture.
+
+The GPT model could be fine-tuned to multiple NLP tasks beyond document classification, such as common sense reasoning, semantic similarity, and reading comprehension.
+
+GPT also emphasized the importance of the Transformer framework, which has a simpler architecture and can train faster than an LSTM-based model. It is also able to learn complex patterns in the data by using the Attention mechanism.
+
+__Architecture of BERT__
+
+BERT is a multi-layer bidirectional Transformer encoder. There are two models introduced in the paper.
+
+- BERT base – 12 layers (transformer blocks), 12 attention heads, and 110 million parameters.
+- BERT Large – 24 layers, 16 attention heads and, 340 million parameters.
+
+<img src="../images/BERT_Architecture.jpg">
+
+__Preprocessing Text for BERT__
+
+The input representation used by BERT is able to represent a single text sentence as well as a pair of sentences (eg., Question, Answering) in a single sequence of tokens.
+
+- The first token of every input sequence is the special classification token – [CLS]. This token is used in classification tasks as an aggregate of the entire sequence representation. It is ignored in non-classification tasks.
+
+- For single text sentence tasks, this [CLS] token is followed by the WordPiece tokens and the separator token – [SEP].
+
+- For sentence pair tasks, the WordPiece tokens of the two sentences are separated by another [SEP] token. This input sequence also ends with the [SEP] token.
+
+- A sentence embedding indicating Sentence A or Sentence B is added to each token. Sentence embeddings are similar to token/word embeddings with a vocabulary of 2.
+
+- A positional embedding is also added to each token to indicate its position in the sequence.
+
+BERT developers have set a a specific set of rules to represent languages before feeding into the model.
+
+<img src="../images/BERT_embedding.jpg">
+
+Every input embedding is a combination of 3 embeddings:
+
+- _Position Embeddings_: BERT learns and uses positional embeddings to express the position of words in a sentence. These are added to overcome the limitation of Transformer which, unlike an RNN, is not able to capture “sequence” or “order” information
+
+- _Segment Embeddings_: BERT can also take sentence pairs as inputs for tasks (Question-Answering). That’s why it learns a unique embedding for the first and the second sentences to help the model distinguish between them. In the above example, all the tokens marked as EA belong to sentence A (and similarly for EB)
+
+- _Token Embeddings_: These are the embeddings learned for the specific token from the WordPiece token vocabulary
+
+For a given token, its input representation is constructed by summing the corresponding token, segment, and position embeddings.
+
+These combinations of preprocessing steps make BERT so versatile. This implies that without making any major change in the model’s architecture, we can easily train it on multiple kinds of NLP tasks.
+
+__Pre Training__
+
+The model was trained in two tasks simultaneously:
+
+1. Masked Language Model-
+
+    <img src="../images/BERT_masking.jpg">
+
+    The arrows indicate the information flow from one layer to the next. The green boxes at the top indicate the final contextualized representation of each input word.
+
+    It’s evident from the above image: BERT is bi-directional, GPT is unidirectional (information flows only from left-to-right), and ELMO is shallowly bidirectional.
+
+    This is where the _Masked Language Model_ comes into the picture.
+
+    The authors of BERT also include some caveats to further improve this technique:
+    - To prevent the model from focusing too much on a particular position or tokens that are masked, the researchers randomly masked 15% of the words
+
+    - The masked words were not always replaced by the masked tokens [MASK] because the [MASK] token would never appear during fine-tuning
+
+    - So, the researchers used the below technique:
+        - 80% of the time the words were replaced with the masked token [MASK]
+        - 10% of the time the words were replaced with random words
+        - 10% of the time the words were left unchanged
+
+2. Next Sentence Prediction-
+
+    Masked Language Models (MLMs) learn to understand the relationship between words. Additionally, BERT is also trained on the task of Next Sentence Prediction for tasks that require an understanding of the relationship between sentences. A good example of such a task would be question answering systems.
+
+    Consider that we have a text dataset of 100,000 sentences. So, there will be 50,000 training examples or pairs of sentences as the training data.
+
+    - For 50% of the pairs, the second sentence would actually be the next sentence to the first sentence
+    - For the remaining 50% of the pairs, the second sentence would be a random sentence from the corpus
+    - The labels for the first case would be ‘IsNext’ and ‘NotNext’ for the second case
+
+And this is how BERT is able to become a true task-agnostic model. It combines both the Masked Language Model (MLM) and the Next Sentence Prediction (NSP) pre-training tasks.
+
+
+<h2>How do Transformers Work in NLP? A Guide to the Latest State-of-the-Art Models</h2>
+
+
+[Link](https://www.analyticsvidhya.com/blog/2019/06/understanding-transformers-nlp-state-of-the-art-models/?utm_source=blog&utm_medium=demystifying-bert-groundbreaking-nlp-framework)
+
+__RNN based Sequence-to-Sequence Model__
+
+<img src="../images/seq2seq.gif">
+
+- Both Encoder and Decoder are RNNs.
+
+- At every time step in the Encoder, the RNN takes a word vector (xi) from the input sequence and a hidden state (Hi) from the previous time step
+
+- The hidden state is updated at each time step
+
+- The hidden state from the last unit is known as the context vector. This contains information about the input sequence
+
+- This context vector is then passed to the decoder and it is then used to generate the target sequence (English phrase)
+
+- If we use the Attention mechanism, then the weighted sum of the hidden states are passed as the context vector to the decoder
+
+Despite being so good at what it does, there are certain limitations of seq-2-seq models with attention:
+- Dealing with long-range dependencies is still challenging
+- The sequential nature of the model architecture prevents parallelization. These challenges are addressed by Google Brain’s Transformer concept
+
+The Transformer is the first transduction model relying entirely on self-attention to compute representations of its input and output without using sequence-aligned RNNs or convolution.
+
+<img src="../images/transformer_architecture.jpg">
+
+In the image above, the left represents the encoder and the right represents the decoder. The Encoder block has 1 layer of a Multi-Head Attention followed by another layer of Feed Forward Neural Network. The decoder, on the other hand, has an extra Masked Multi-Head Attention.
+
+The encoder and decoder blocks are actually multiple identical encoders and decoders stacked on top of each other. Both the encoder stack and the decoder stack have the same number of units.
+
+The number of encoder and decoder units is a hyperparameter. In the paper, 6 encoders and decoders have been used.
+
+- The word embeddings of the input sequence are passed to the first encoder.
+- These are then transformed and propagated to the next encoder
+- The output from the last encoder in the encoder-stack is passed to all the decoders in the decoder-stack as shown in the figure below:
+
+<img src="../images/encoder_decoder.jpg">
+
+An important thing to note here – in addition to the self-attention and feed-forward layers, the decoders also have one more layer of Encoder-Decoder Attention layer. This helps the decoder focus on the appropriate parts of the input sequence.
+
+__Self-Attention__
+
+Self-attention, sometimes called intra-attention, is an attention mechanism relating different positions of a single sequence in order to compute a representation of the sequence.
+
+Self-attention allows the model to look at the other words in the input sequence to get a better understanding of a certain word in the sequence.
+
+__Calculating Self-Attention__
+
+First, we need to create three vectors from each of the encoder’s input vectors:
+1. Query Vector
+2. Key Vector
+3. Value Vector.
+
+These vectors are trained and updated during the training process.
+
+Next, we will calculate self-attention for every word in the input sequence.
+
+<img src="../images/attention_calculation.jpg">
+
+Self-attention is computed not once but multiple times in the Transformer’s architecture, in parallel and independently. It is therefore referred to as Multi-head Attention. The outputs are concatenated and linearly transformed as shown in the figure below:
+
+<img src="../images/multi_head_attention.jpg">
+
+__Limitations of the Transformer__
+
+Transformer is undoubtedly a huge improvement over the RNN based seq2seq models. But it comes with its own share of limitations:
+- Attention can only deal with fixed-length text strings. The text has to be split into a certain number of segments or chunks before being fed into the system as input
+- This chunking of text causes context fragmentation. For example, if a sentence is split from the middle, then a significant amount of context is lost. In other words, the text is split without respecting the sentence or any other semantic boundary
+
+So how do we deal with these pretty major issues? That’s the question folks who worked with Transformer asked. And out of this came Transformer-XL.
+
+__Understanding Transformer-XL__
+
+In this architecture, the hidden states obtained in previous segments are reused as a source of information for the current segment. It enables modeling longer-term dependency as the information can flow from one segment to the next.
+
+<img src="../images/BERT_comparison.jpg">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -142,7 +330,17 @@ pytextrank is the Python implementation of TextRank.
 
 Document understanding goes over and above OCR, requiring layout analysis, handwritten text recognition, symbolic language interpretation etc., on anything from administrative and historical documents to mixed-type documents such as maps and diagrams. Understanding text in the wild, on the other hand, has already enabled applications such as image-based translation or autonomous navigation.
 
+Cloud computing, in general, is also gaining more attention as a cost issue to be addressed by software companies. Tightly coupling an application to the current way of doing things may lead to an architectural disadvantage in the future.
 
+On one hand, ops groups are in a good position to do this; they’re already heavily invested in testing, monitoring, version control, reproducibility, and automation. On the other hand, they will have to learn a lot about how AI applications work and what’s needed to support them. There’s a lot more to AI Operations than Kubernetes and Docker.
+
+Source code is relatively less important compared to typical applications; the training data is what determines how the model behaves, and the training process is all about tweaking parameters in the application so that it delivers correct results most of the time.
+
+This means that, to have a history of how an application was developed, you have to look at more than the source code. You need a repository for models and for the training data. There are many tools for managing source code, from git back to the venerable SCCS, but we’re only starting to build tools for data versioning. And that’s essential: if you need to understand how your model behaves, and you don’t have the training data, you’re sunk. The same is true for the models themselves; if you don’t have the artifacts you produced, you won’t be able to make statements about how they performed. Given source code and the training data, you could re-produce a model, but it almost certainly wouldn’t be the same because of randomization in the training process.
+
+This changes what we mean by “monitoring.” AI applications need to be monitored for staleness—whatever that might mean for your particular application. They also need to be monitored for fairness and bias, which can certainly creep in after deployment. And these results are inherently statistical. You need to collect a large number of data points to tell that a model has grown stale. It’s not like pinging a server to see if it’s down; it’s more like analyzing long-term trends in response time. We have the tools for that analysis; we just need to learn how to re-deploy them around issues like fairness.
+
+Last, and maybe most important: AI applications are, above all, probabilistic. Given the same inputs, they don’t necessarily return the same results each time. This has important implications for testing. We can do unit testing, integration testing, and acceptance testing—but we have to acknowledge that AI is not a world in which testing whether 2 == 1+1 counts for much. And conversely, if you need software with that kind of accuracy (for example, a billing application), you shouldn’t be using AI. In the last two decades, a tremendous amount of work has been done on testing and building test suites. Now, it looks like that’s just a start. How do we test software whose behavior is fundamentally probabilistic? We will need to learn.
 
 
 
@@ -153,12 +351,6 @@ Document understanding goes over and above OCR, requiring layout analysis, handw
 
 <h2>Courses</h2>
 
-
-<h3>LinkedIn: Amazon Web Services: Exploring Business Solutions</h3>
-
-I can train and deploy machine learning model using Amazon SageMaker.
-
-I can use customer feedback and get the summaries that perform bad and use the SageMaker labelling and Amazon Mechanical Turk to rate the machine learning summaries and once I get enough summaries I can retrain the network and deploy.
 
 <h3>LinkedIn: Deploying Scalable Machine Learning for Data Science</h3>
 
@@ -469,77 +661,8 @@ __Best practices for Scaling ML__
 - Use orchestration tools
 - Monitor all levels of the stack.
 
-<h3>Flask and AWS</h3>
+<h3>Flask Essential Training</h3>
 
-- I can use either Flask SQLAlchemy or FlaskRedis to read and write to and from a database.
+__Data Flow in Flask__
 
-- I can use [AWS RDS](https://aws.amazon.com/rds/) and select MySQL engine and select dev/test for now and then move to [Amazon Aurora](https://aws.amazon.com/rds/aurora/machine-learning/) for production
-
-- Elastic Beanstalk Environment for deploying the app using a CLI
-
-- [Amazon Web Services’ Lambda](https://aws.amazon.com/lambda/) containerizes your code and auto-scales those containers for you, with zero administration required from developers. For clarity, “serverless” means the developer does not have to think about servers, even though they exist. AWS handles them.
-
-- [Amazon DynamoDB](https://aws.amazon.com/dynamodb/) looks like a good option to store the text data but look into it further.
-
-- [AWS Elastic Beanstalk](https://aws.amazon.com/elasticbeanstalk/) is an easy-to-use service for deploying and scaling web applications
-
-
-
-
-
-
-
-
-
-
-
-<h3>AWS</h3>
-
-
-- A solution like Beanstalk will take care of the scaling of your web servers by putting a reverse proxy in front of your application servers. It will easily manage requests in the order of early thousands concurrently and after that your load balancers will kick in rotating the user’s requests to other application servers according to the auto scaling policy you have mentioned in the configuration settings while setting your application
-
-_AWS Lambda vs Elastic Beanstalk_
-
-- Lambda is simpler and less expensive, while Elastic Beanstalk lets you run full applications and gives you control over their environment.
-
-- With Elastic Beanstalk, you have access to a Platform as a Service (PaaS), and you can manage some aspects of the infrastructure. Developers can create, test, and deploy applications on the platform. You don’t have to deal with provisioning, load balancing, or scaling. Elastic Beanstalk supports many server environments, including Apache HTTP Server, Nginx, Microsoft IIS, and Apache Tomcat. It has strong support for Docker containers, allowing easy deployment of applications.
-
-- Developers uploading to Lambda don’t have to deal with their code’s environment. It’s a “serverless” service which lets outside code or events invoke functions. Lambda doesn’t store data, but it allows access to other services which do. The thing which really makes Lambda attractive is that you pay nothing except when you actually run code on it. You can pull compute-heavy pieces out of your applications and deploy them on Lambda for a very low cost. You can’t run full-blown applications on Lambda, but AWS Step Functions implement a state machine, letting you invoke a series of Lambda functions and handle error conditions. Lambda functions can serve as a backend to an application running elsewhere.
-
-- Elastic Beanstalk pricing is more complicated. There’s no charge for using Elastic Beanstalk as such, but you pay for the AWS resources that store and run your code. The Free Usage Tier, which is available for 12 months, may be enough to run many applications that don’t get heavy traffic. Applications will usually run on EC2, which is where you pay for instances, load balancing, and data transfers. You can pay for on-demand, reserved, or spot instances, or you can request a dedicated server. On-demand works best if your requirements vary over time, and spot instances can save money if you’re flexible about when your applications run.
-
-- Lambda lets you define functions which are available at any time, but it doesn’t give you any persistent storage or state information. This isn’t as limiting as it may sound, though. You can add S3 storage or a database as a backend. You can offload processing tasks from a front-end application onto Lambda. AWS Step Functions allow the implementation of simple workflows. Amazon API gateway provides a backplane for building an API using Lambda functions.
-
-- Lambda does have some hard limits. The request body payload can’t be more than 6 MB. The duration of a request can’t exceed 300 seconds. This makes it unsuitable for passing large blocks of data or for functions that wait a long time, but there are often workarounds. There are also deployment limits; a deployment package can’t exceed 50 MB. Lambda code can include existing libraries, but very large libraries could be a problem.
-
-- If customization of the application’s environment is necessary, Elastic Beanstalk offers a lot of value. Anything that’s concerned with the details of security, resource allocation, auto-scaling, and log customization needs more flexibility than Lambda offers.
-
-- The whole application doesn’t need to be on the application platform. A hybrid approach, with functions on Lambda doing the bulk of the computing, will let you run a lightweight application that doesn’t require a huge amount of server power. When making the choice of AWS Lambda vs. Elastic Beanstalk, it isn’t necessarily an either-or choice.
-
-- AWS Lambda will let you slice your apps as granularly as you like. Can’t do that with Elastic Beanstalk. A Lambda function can be a single API endpoint, a collection of endpoints, or an entire app backend.
-
-- AWS Lambda lets you easily set up triggers via Amazon’s API Gateway, DynamoDB, and S3 services.
-
-I feel that any Application deployed in production should be made such that it stands out on the following 3 features:
-
-- Scalability
-- High Availability(Resiliency)
-- Maintainability
-
-- For businesses new to AWS or new to the containerization concept, just getting started with Docker, or developing new applications, Elastic Beanstalk may be the best approach to support Docker containers. Elastic Beanstalk offers a simple interface, allows Docker images to be pulled from public or private registries, and coordinates the deployment of multiple Docker containers to Amazon ECS clusters. Elastic Beanstalk gives you less control over application scaling and capacity but makes deploying Docker containers on AWS ever so straightforward.
-
-- In comparison to Elastic Beanstalk, Elastic Container Service (relies on [AWS Fargate](https://aws.amazon.com/fargate/)) provides greater control over application architectures and orchestration of Docker containers. You specify the size and number of cluster nodes and determine if auto-scaling should be used. Elastic Container Service uses tasks to launch Docker containers. A task includes the container definition, providing the ability to group containers in sets that launch together then terminate simultaneously. ECS provides significantly greater flexibility and customization in scheduling and CPU and memory utilization. In addition, ECS does not require special integration efforts to work with many other AWS services.
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h3>LinkedIn: Amazon Web Services Machine Learning Essential Training</h3>
+- I can use `redirect(url_for('home'))` to redirect url instead of `render_template`.

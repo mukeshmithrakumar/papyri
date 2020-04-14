@@ -56,3 +56,46 @@
 # import os.path
 # import sys
 # sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+# import boto3
+# from dotenv import load_dotenv
+# import os
+
+# load_dotenv()
+
+
+# class TextExtract:
+#     """This is what's going to go in the Lambda Function.
+#     Extract text Using Amazon Textractor"""
+
+#     def __init__(self, documentName, path):
+#         self.documentName = documentName
+#         self.path = path
+
+#     def parser(self, response):
+#         for item in response['Blocks']:
+#             if item['BlockType'] == "LINE":
+#                 print(item["TEXT"])
+
+#     def extract(self):
+#         """Function to extract text from AWS Textract"""
+
+#         AWS_SECRET_KEY = os.getenv('AWS_SECRET_KEY')
+#         AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+
+#         textract = boto3.client('textract',
+#                                 aws_access_key_id=AWS_ACCESS_KEY_ID,
+#                                 aws_secret_access_key=AWS_SECRET_KEY)
+
+#         file_name = self.path + self.documentName + '.pdf'
+
+#         # Call Amazon textract
+#         response = textract.detect_document_text(Document={'Bytes': file_name})
+#         return response
+
+
+# def text_extract(f_name, dirpath):
+#     # Extract the text using text Extract
+#     TextExtract(f_name, dirpath).extract()
+
+#     # Store both the raw and the cleaned text in the bucket

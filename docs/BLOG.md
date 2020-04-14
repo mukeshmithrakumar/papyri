@@ -53,6 +53,20 @@ So, as you know, machine learning has a train component and a inference componen
 
 If you see the architecture, it can clearly be broken down to three or four components, text extraction, summarization, question and answer, chatbot. Since I want to build things incrementally I first need to build the skeleton of my application, the front end and the Flask interface so after I build a component I can test its functionality and if everything's satisfying I then move to the next component. This works nicely if you follow an object oriented approach when writing your python components.
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <h3>Learning</h3>
 
 Before I start any client project, I spend a week or two depending on the size of the project and my background knowledge learning about the state of the art models and about any services I would need to use in the project. Similarly, for this project, I am new to AWS and Flask so the first week I am going to split into two and go through AWS Services and how to work with Flask.
@@ -66,13 +80,12 @@ I am also not going to just start learning everything in the AWS side, so I am g
 So as I build these components my basic architecture will keep updating and evolving. Some may disagree with my approach but I prefer building evolving software architectures that grows with time and is flexible enough to adapt. Specially in the Machine Learning world things are growing so fast, there seems to be better ways of doing things every month. But I've found that when you look for flexibility, you sometimes tradeoff usability so I make sure I pick components that allow me to
 
 1. Scalability
-2. Interchangeable
+2. Loosely Coupled (Interchangeability)
 3. Security
 
 (Write the three main things to build a software)
 
 at any point. And make sure you study the components you are using even if it takes some time to learn these stuff, please do, you will save a lot of time in the end rewriting things, spending a lot of money and ultimately build an app that can scale.
-
 
 <h3>Cost</h3>
 
@@ -129,11 +142,8 @@ Now that my app can search and present results, next I need to download and summ
 I looked into other Flask tutorials and courses but they are too simple and even the ones that say they are advanced didn't really solve the problems I was having setting up my workflow so below are some tutorials that I used that helped me in this project. That being said the more basic ones are good for getting started but not really for big production-ready software applications.
 
 - [Demystifying Flask’s Application Factory](https://hackersandslackers.com/flask-application-factory/)
-
 - [Organizing Flask Apps with Blueprints](https://hackersandslackers.com/flask-blueprints/)
-
 - [Configuring Your Flask App](https://hackersandslackers.com/configure-flask-applications/)
-
 - [The Art of Routing in Flask](https://hackersandslackers.com/flask-routes/)
 
 Based on what I learned, below is how I set up my app folder:
@@ -148,13 +158,16 @@ Since everything upto my search works using JavaScript, all I needed to setup we
 
 - [Deploying a Flask application to AWS](https://medium.com/@rodkey/deploying-a-flask-application-on-aws-a72daba6bb80)
 
-Below is the Flask sequence diagram:
+Next, I wanted to deploy this prototype and the above article mentions using [AWS Elastic Beanstalk](https://aws.amazon.com/elasticbeanstalk/). But there are other services like [AWS Lambda](https://aws.amazon.com/lambda/) and [AWS Fargate](https://aws.amazon.com/fargate/) that will allow you to deploy your apps. So to understand the differences, I went through:
 
-(Flask Sequence diagram, take inspiration from: https://www.freecodecamp.org/news/cjn-understanding-mean-stack-through-diagrams/)
+- [AWS Lambda vs AWS Elastic Beanstalk](https://www.entranceconsulting.com/aws/aws-lambda-vs-elastic-beanstalk/)
+- [Elastic Beanstalk vs ECS Fargate](https://www.reddit.com/r/aws/comments/7mjs6x/elastic_beanstalk_vs_ecs_fargate/)
 
-Next, I wanted to deploy this prototype using [AWS Elastic Beanstalk](https://aws.amazon.com/elasticbeanstalk/). I have discussed to some extent in my notes why I picked this over AWS Lambda or AWS Fargate for initial deployment. Btw I only used their documentation to deploy the app:
+Going through the above articles and the official documentations helped me understand my main application should reside in AWS Elastic Beanstalk for now because its easy to get started and I am going to use Lambda functions for invoking my functions like summarization and so on based on some trigger events like user selecting a paper to summarize.
 
-- [AWS Elastic Beanstalk Documentation](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/Welcome.html)
+I also have discussed to some extent in my notes why I picked Elastic Beanstalk (EBS) over Lambda and Fargate for initial deployment. To deploy my prototype with EBS I only used their developer guide:
+
+- [AWS Elastic Beanstalk Developer Guide](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/Welcome.html)
 
 And as all coders know, I ran into issues, very minor head banging issues we usually run into.
 1. AWS required me to create an application object since I was using Flask, not an app object in my application.py, so basically
@@ -172,48 +185,124 @@ option_settings:
         /static: papyriapp/static/
 ```
 
+So far my app is able to search arXiv papers, next, it should download the file the user selects and extract the text from the pdf. When I was looking into ways of extracting text from pdf I came across few libraries and I initially wrote the text extraction in python using pdfminer but later I came across [Amazon Textract](https://aws.amazon.com/textract/) and explored if I could integrate that with my work.
+
+This was also when I understood how steep of a learning curve you have to get up to speed with AWS. Building PoCs and models and web apps is easy, you have tons of resources and you bundle everything together and deploy and I've done it tons of time with GCP. But building an app that scales is much much difficult, let me rephrase, building a Machine Learning App that is scalable and cost efficient is very difficult. Yes, AWS has services that auto-scales and load balances and stuff, but that is not the only thing you need to worry about, below are some questions I was wrestling with.
+
+- Cost, I can easily package all the services and put it in AWS Elastic Beanstalk and call it a day, but it will burn through my wallet.
+
+- So, containerizing my solutions is the best, so, let's have all the static content and everything upto searching or even text extraction in AWS EBS and use a low power instance. Then create an API Gateway and call other services like textract or SageMaker for ML through AWS Lambda. Cool, this is a good idea.
+
+- Now, building the API gateway, all the examples I found on how to do that was like hello world examples and they relied on the online AWS Code editor to get things done, which would be fine if you aren't worried about scaling, meaning, at some point, you will have to work with others and imagine the hassle if the only way to make modifications was through an online code editor, good luck.
+
+- So, I need a code pipeline, basically a way to deploy from command line with version control and continuous integration/development. AWS EBS has the elastic beanstalk package that let's you deploy from command line and you also have [AWS CodePipeline](https://aws.amazon.com/codepipeline/) to help with the CI/CD but I didn't know how this all will work together, I basically need to setup a streamed pipeline so when I make changes to the app, I just have to run a command or a shell script and everything will go through version control and testing and then deploy as Blue-green deployment.
+
+- Now the Lambda functions, jeez this was driving me nuts, my technique of jumping in by just going through the documentation of Lambda Functions didn't work, don't get me wrong, the documentation was good, it was just at this point, I was working with a lot of things I didn't understand, AWS EBS, AWS Lambda, Flask and AWS API gateway and on top of that how am I going to integrate all of this with AWS SageMaker. This was when I realized how big of a beast AWS was, there were tons of services that pretty much did similar things except with minor but very important differences. This was when I even started questioning my decision to use EBS cause whenever I searched for how EBS would work with AWS Lambda I just found either or solutions. I even went through [AWS Samples](https://github.com/aws-samples) which had tons of examples and I just couldn't find what I was looking for. I didn't think it couldn't be done, I just knew I was taking too big of a chunk than I can chew.
+
+- This was when I took a step back, I know what I am building but I just don't know the tools I am going to use and since I didn't want to reuse the same tool and only pick the tools I need, the only way was for me to stop coding, the hard part and learn about all the tools I had.
+
+- The other problem I had was, I was thinking locally, I know how to set up a CI/CD pipeline for an app for single users but when you want to serve multiple users, you need to change how you think. It doesn't mean you have to start from scratch, you just have to change how you think about the whole process.
+
+- I need to start with general AWS Services to see what I can use from the AWS stack, then AWS EBS, Lambda functions, API Gateway, SageMaker and while I was going through all this documentation I found [Mphasis DeepInsights Text Summarizer](https://aws.amazon.com/marketplace/pp/prodview-uzkcdmjuagetk?ref_=srh_res_product_title) to build the summaries and [Amazon Lex](https://aws.amazon.com/lex/) for the chatbot so I am thinking of going through these as well. I know I am in a tight deadline but I also know I won't be able to build what I want with everything I want if I don't go through everything, even if somethings I wouldn't use. I just need to build my complete inference architecture before progressing.
+
+Remember, the first time you are learning something, its natural to stumble, fall and even fail miserably, the important thing is to stand up, learn from your mistake and keep going.
+
+So, this is my plan for the next week, I am going to go through:
+
+- [Amazon Web Services: Exploring Business Solutions](https://www.linkedin.com/learning/amazon-web-services-exploring-business-solutions)
+- [AWS Essential Training for Architects](https://www.linkedin.com/learning/aws-essential-training-for-architects)
+- [Flask Essential Training](https://www.linkedin.com/learning/flask-essential-training/web-development-with-flask)
+- [Amazon Web Services Machine Learning Essential Training]()
+
+I understand not everyone will have access to LinkedIn learning so for those, YouTube is your best friend, take a look at [AWS Events](https://www.youtube.com/channel/UCdoadna9HFHsxXWhafhNvKw), [Amazon Web Services](https://www.youtube.com/channel/UCd6MoB9NC6uYN2grvUNT-Zg) and [AWS Online Tech Talks](https://www.youtube.com/user/AWSwebinars) they have amazing talks, might not be as hands-on as the LinkedIn course, but for those you can fill with blogs, the main thing is understanding the concepts. Some YouTube talks you can go through:
+
+- [Scaling on AWS for the First 10 Million Users](https://www.youtube.com/watch?v=Ma3xWDXTxRg)
+- [Deploying Cost-Effective Deep Learning Inference](https://www.youtube.com/watch?v=WiCougIDRsw)
+- [Build, Train and Deploy Machine Learning Models on AWS with Amazon SageMaker](https://www.youtube.com/watch?v=R0vC31OXt-g)
+
+I also went through the following short videos to look into what kind of architectures some companies are using:
+
+- [Using AWS Lambda for its Decoupled Content Deployment Architecture](https://www.youtube.com/watch?v=oDLUTgEn2gc)
+- [Serverless Architecture pattern for Melco Club mobile app](https://www.youtube.com/watch?v=amh7nzl32v4)
+- [Building a Serverless Website Archival Workflow on AWS](https://www.youtube.com/watch?v=kGwX0H0eukU)
+- [Expedia's Automated CI/CD Platform with Github, Jenkins and Amazon ECS](https://www.youtube.com/watch?v=ry5GmEFa7P8)
+- [Building Optimized ML Models with Amazon SageMaker](https://www.youtube.com/watch?v=LPZlrX2cNjo)
+- [Machine Learning and Automated Model Retraining with SageMaker](https://www.youtube.com/watch?v=1kbWvlHBYLk)
+- [How to build a scalable chatbot and deploy to Europe’s largest airline](https://www.youtube.com/watch?v=dAQhNjwkOX8)
+
+Finally, some reading materials I went through:
+
+- [AI/ML Based Intelligent Email Responder](https://d1.awsstatic.com/architecture-diagrams/ArchitectureDiagrams/ai-ml-based-intelligent-email-responder-ra.pdf)
+- [AWS Serverless Multi-Tier Architectures](https://d1.awsstatic.com/whitepapers/AWS_Serverless_Multi-Tier_Architectures.pdf)
+
+Well, that was a lot, below is my summarizer architecture:
+
+<img src="../images/aws_summarizer_architecture.png">
+
+Note that I still haven't incorporated the Chatbot, CI/CD and Cloud Watch pipeline and the training pipeline here. I just want to build the summarizer architecture first and then look into easy ways of integrating the rest.
+
+I have some other ideas about storage, basically to use a graph storage instead of the storage architecture I have above cause I want the database to act like a knowledge discovery database for my chatbot so that it improves over time and uses material from other research papers to answer questions.
+
+For my purposes of just extracting the text, the AWS textractor can be an overkill, my textractor gives me the same results as the Amazons' textractor but Amazons' textractor comes with other functionality like extracting images and tables with location of the text, so if I choose to use those to help my summarizer later, it would be easy but for now, I am just gonna go with my text extractor, which I can parallelize and make it fast and if needs be, or even write things in C and save some money in the mean time.
+
+I decoupled a lot of things as well into microservices, like for example I was planning to have the text extraction/cleaning inside Beanstalk but having it decoupled this way helps in scaling individual components and I don't have to use large instances to support extraction because the Lambda function is auto-scaled and if the load increases it will take care of that.
+
+I basically broke the architecture into three components:
+
+- _Presentation_: Where my webpage and search function resides and I am using AWS EBS for that.
+
+- _Summarizer_: This is the summarization component inside the step function. I went with the step function because I need to pass the output from Lambda to process for the summarization. With Step functions if I choose to go with a different custom summarizer, that is very easy as well. It also helps with parallelly storing the raw text and the summary text in an S3 bucket.
+
+- _Data_: Stores all the data from text to performance measures and everything. For now this just has the text storage, it will be modified to store performance metric data later.
+
+Some helpful links that I used to setup the architecture:
+
+- I used the following link to setup the API Gateway to talk with the Step Function:
+[Creating a Step Functions API Using API Gateway](https://docs.aws.amazon.com/step-functions/latest/dg/tutorial-api-gateway.html)
+
+- In general the [AWS Step Functions Documentation](https://docs.aws.amazon.com/step-functions/latest/dg/welcome.html) is pretty good and you should find answers to most of your problems.
 
 
 
 
-So far my app is able to search arXiv papers, next, it should download the file the user selects, (Should I store it in S3? What would be the cost).
 
 
+I am just realizing, for the summarizer, if I am using the API gateway, I don't need to use the Flask API, I can just make Ajax calls, its more easy and it looks like that will help with loading the results. But if I want to use Flask, then I can get rid of the API gateway and use boto3 to start the state machine.
 
-
-
-Then download the selected file and store it in S3 bucket. After it is stored, I need to call the pdf to text extractor which would have to read the file from S3 so there is going to be I/O latency but I suspect it won't be as bad.
-
-
-
-
-
-Next, I need to extract the text in the pdf.
-
-
-
-
-
-Now that we are closing in on the Machine Learning Stuff, I wanna see what kind of Machine Learning Services Amazon provide so I can leverage that. I am going to look at it now cause if it already has for example, text summarization and a chatbot, I don't have to worry about training the models just yet.
-
-- [Amazon Web Services Machine Learning Essential Training](https://www.linkedin.com/learning/amazon-web-services-machine-learning-essential-training/welcome)
+When you are using packages that has some C extensions, you need to specify the wsgi configs, otherwise you will run into timeout issues.
 
 
 
 
 
 
+To keep track:
+
+- AWS Architecture with Chatbot
+
+I should look into Simple Workflow service to parallelize creating a summary and then starting the QnA model, I can render the summary as soon as its done and then keep on processing the QnA in the background and then render that to make the user feel like he hasn't been waiting a long time. Or, I can also add like a start chat button and only when that's clicked, I invoke the chatbot to reduce cost.
+
+- AWS Architecture with CI/CD
+
+[Practicing Continuous Integration and Continuous Delivery on AWS](https://d1.awsstatic.com/whitepapers/DevOps/practicing-continuous-integration-continuous-delivery-on-AWS.pdf)
+
+See how you can use Cloudwatch to get notifications of increased usage. By utilizing the API, Cloudwatch can also be used to monitor custom metrics generated by custom applications running in the cloud. Think about what applications or metrics do I need to track.
+
+Look into CloudFormation and CloudFormer templates to see if you can use those in your work.
+
+I can use SNS to monitor my application and get notified if something goes wrong or there is a spike in usage.
+
+- AWS Training architecture
+
+[Deep Learning on AWS](https://d1.awsstatic.com/whitepapers/Deep_Learning_on_AWS.pdf)
 
 
 
-
-I initially wrote the text extraction in python using pdfminer but later when I looked into AWS services, I came across their text extractor, you can read more about it in [Section 2: Inference Engine](). For my purposes of just extracting the text, the AWS textractor and my textractor gave the same results but Amazons' textractor comes with other functionality like extracting images and tables, so if I choose to use those to help my summarizer later, it would be easy so I am going with AWS textractor for now with the tradeoff of cost. Below is my modified inference architecture with the AWS textractor component. Note that I am just showing only the extraction component.
-
-(AWS textractor architecture)
-
-Next I send the extracted text through a text cleaner to do some basic cleaning like removing the title, equations and the reference section. (I need to check this with abstract and reference keywords in the paper and see how it works)
+- Papyri Architecture
 
 
+
+AWS has this [AWS Architecture Center](https://aws.amazon.com/architecture) where you can take a look at a bunch of architectures and they also have a [AWS Well-Architected Tool](https://aws.amazon.com/well-architected-tool/) to evaluate architectures.
 
 
 
@@ -242,30 +331,7 @@ I want to either store all of it in a bucket and update a csv with the links or 
 
 
 
-
-
-
-Based on what I learned,
-
-
-
-
-
-
-
-I started with the arXiv scrapper, then the pdf to text converter, followed by a text cleaner that cleans the initial text and groups things on paragraphs. I initially thought of building a layout recognition and text recognition engine that would work for all types of research documents but wanted to build something simple and easy that works and afterwards I can work on it to improve. This brings to my approach of building modular packages. Basically, a object oriented approach so if I need to swap things out I would easily be able to. Specially the machine learning components. So below is how I laid out the structure. Btw the easiest first step in following a object oriented approach is to take some time to come up with how to format things (I need to change the word format). Simply, before starting I would spend some time on creating the correct folders and python files that you think would be needed, Spend some time naming them, you don't have to write any code, just name them and draw how the files will interact with one another.
-
-(Python Folder Structure)
-
-Note that I did my UML Class Diagrams in a paper so not sharing it here, but if you want to learn about UML class diagrams and a free tool to draw some UML diagrams take a look at (Link). For those not familiar with UML class diagrams, below is a sample picture:
-
-(UML Class diagram example)
-
-Without going into detail UML Class diagrams describe a class's' properties and methods. Its an easy way to visualize and design how your classes are going to interact with each other and there are other types of UML diagrams you can use in your work. Take a look at [here](). You don't need to know a lot of UML stuff, just the basics to put your idea in paper and have a roadmap would be more than good enough, and even though there are softwares to help draw UML diagrams, I still prefer a paper and converting it into digital format later if it needs to be shared.
-
-Now, that I have a way of downloading the pdf based on a query, I want to build a simple UI that would work. But before that, the most important part of building a software, testing.
-
-I can't stress this enough, please write unit and integration test at the least. If you see my folder structure, when I created the files, I also made sure to create test files and before I start writing another module. What I will do now is, write test for my scrapper and converter and cleaner functions. After testing the functions individually which is appropriately called Functional Testing, I will put these in the unit_test file and see if they function completely as a file, this can only be done if you follow an object oriented approach and set up your files and modules correctly.
+Finally, I can't stress this enough, please write unit and integration test at the least. If you see my folder structure, when I created the files, I also made sure to create test files and before I start writing another module. What I will do now is, write test for my scrapper and converter and cleaner functions. After testing the functions individually which is appropriately called Functional Testing, I will put these in the unit_test file and see if they function completely as a file, this can only be done if you follow an object oriented approach and set up your files and modules correctly.
 
 Next I would write the component test, for example the first component we built was the text_extraction module so I will test if that works as it should and put it under the text_extraction class. I will follow a similar approach to all the python related stuff. Note that people may have different names for the types of testing I mentioned, all you need to understand is the basic concepts of it and why you need to do it. And if this is your first time to testing, please see the links below:
 
@@ -274,37 +340,6 @@ Next I would write the component test, for example the first component we built 
 - [Types Of Software Testing: Different Testing Types With Details](https://www.softwaretestinghelp.com/types-of-software-testing/)
 
 So, if you had noticed my testing file, there was a integration testing file, which is what I am going to use to test if two components or more work together as they should. For example, like does my front end and back end communicate properly.
-
-
-
-
-
-
-
-
-
-I then went into AWS, learned how the services will interact with each other and what services AWS has in general. Below are links I used to learn about AWS services:
-
-(AWS Services link)
-
-- [Amazon Web Services: Exploring Business Solutions](https://www.linkedin.com/learning/amazon-web-services-exploring-business-solutions/planning-aws-machine-learning-solution). You don't need to go through the whole course, you can just view the Machine Learning on AWS section.
-
-- [Amazon Web Services Machine Learning Essential Training](https://www.linkedin.com/learning/amazon-web-services-machine-learning-essential-training/welcome) : Another LinkedIn course but for this one, go through everything.
-
-
-
-
-
-I think I am going to move my inference related stuff completely into the app folder and have it separate and then have src only have things related to training. That way I can manage the two different deployments, the scaling needed for inference, and use the Machine Learning side as black boxes where I just get data from using APIs and I can integrate the AWS Chatbot and the like and it would be easier to scale. So, text extractor should be moved to app.
-
-
-
-
-
-Now, that I have a complete idea for the inference engine, below is my complete inference architecture with all the AWS components
-
-(Complete inference architecture image)
-
 
 
 
@@ -547,6 +582,13 @@ I also found later when I started going through AWS services that they have a te
 
 <h3>Question Answering</h3>
 
+I can just collect research papers and train BERT, if you read how BERT is trained, it uses Masked Language Modeling and Next Sentence Prediction. I can try to randomly mask words on a research paper by randomly masking 15% of the words, I should also look into details of how this masking was done.
+
+For the Next Sentence Prediction, all I have to do is split the text by sentences and for 50% of the pairs the second sentence will be the true next sentence and for 50% the next sentence will not be and then label it 1 or 0 and train a classification model.
+
+
+
+
 
 
 <h3>Chatbot</h3>
@@ -566,3 +608,11 @@ I also found later when I started going through AWS services that they have a te
 
 
 <h3>Monitoring</h3>
+
+
+
+
+<h2>Future Work</h2>
+
+- I can add a button so the user can directly upload the pdf he wants to summarize
+- When the user searches and clicks on a paper to summarize, I can show that a previous summary exists and render that without calling a new summarizer.
