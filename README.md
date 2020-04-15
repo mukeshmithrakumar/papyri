@@ -18,8 +18,6 @@ I was only able to finish the first release, what the app does now is it searche
 
 <img src="https://raw.githubusercontent.com/mukeshmithrakumar/papyri-docs/master/images/aws_summarizer_demo.gif"/>
 
-(If the demo isn't visible, take a look at the next tab)
-
 In the second release, I am planning to integrate this with a ChatBot so for whatever paper you summarize, a ChatBot will be ready to answer any questions you have on the paper.
 
 In the third release, I am planning to extend this as an Alexa Skill. Imagine,
@@ -34,7 +32,7 @@ Before you get to office, you potentially have some solutions you can try out.
 
 Below is the architecture I built, note that this is only the Summarizer Architecture and I am still working on the ChatBot and the CI/CD architecture:
 
-<img src="https://raw.githubusercontent.com/mukeshmithrakumar/papyri-docs/master/images/aws_summarizer_architecture.png"/>
+<img src="https://raw.githubusercontent.com/mukeshmithrakumar/papyri-docs/master/images/aws_summarizer_architecture.jpg"/>
 
 The Elastic Beanstalk Container serves my frontend to the user and it also does the searching of arXiv based on user query and then when the user selects a PDF to summarize, the PDF meta like the title and url is posted from JavaScript to the API Gateway which then initiates the Lambda Function to extract and clean the data and the clean data gets stored in a clean text bucket and a successful execution returns a 200 which is received by JavaScript which then passes some meta information to the Flask and then Flask invokes the Mphasis Text Summarizer endpoint in SageMaker for prediction of the cleaned text. The cleaned text is then stored in the browser and rendered to the user and after the session ends the summary text along with user rating of the summary, paper title and url gets sent to another the bucket as JSON, which then invokes a SNS and the Lambda function extracts the meta data and stores it in the AuroraDB. I am exploring the usage of graph databases since I think it will be beneficial for the chatbot so AuroraDB is just a placeholder for now.
 
