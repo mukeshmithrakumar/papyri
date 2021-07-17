@@ -1,5 +1,6 @@
 <p align="center"><img src="https://raw.githubusercontent.com/mukeshmithrakumar/papyri-docs/master/images/cover.png"/></p>
 
+<img alt="Not Maintained" src="https://img.shields.io/badge/Maintained%3F-no-red.svg" />
 
 <h2>Inspiration</h2>
 
